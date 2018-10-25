@@ -3,6 +3,7 @@
  * of the test I guess.
  */
 const TEMPLATE_MANAGER_URL = "https://localhost:3000/";
+let modal;
 
 InboxSDK.load("1", "AMPLEMARKET_TEMPLATE_MANAGER_ID").then(sdk => {
   sdk.Compose.registerComposeViewHandler(composeView => {
@@ -12,8 +13,8 @@ InboxSDK.load("1", "AMPLEMARKET_TEMPLATE_MANAGER_ID").then(sdk => {
       iconUrl:
         "https://lh5.googleusercontent.com/itq66nh65lfCick8cJ-OPuqZ8OUDTIxjCc25dkc4WUT1JG8XG3z6-eboCu63_uDXSqMnLRdlvQ=s128-h128-e365",
       onClick: event => {
-        const iframe = generateIframe(TEMPLATE_MANAGER_URL);
-        let modal = sdk.Widgets.showModalView({ el: iframe });
+        const iframe = generateIframe(TEMPLATE_MANAGER_URL, composeView);
+        modal = sdk.Widgets.showModalView({ el: iframe });
         modal.on("destroy", function() {
           window.removeEventListener("message", modalMessageHandler, false);
         });
@@ -42,9 +43,10 @@ InboxSDK.load("1", "AMPLEMARKET_TEMPLATE_MANAGER_ID").then(sdk => {
  * Generated iframe also listen to message event in order to communicate
  * with the inner iframe.
  * @params iframeSrc: The url we want to load into our iframe.
+ * @params composeView: composeView from which you generate the iframe.
  * @returns: iframe Element which displays the given src.
  */
-const generateIframe = iframeSrc => {
+const generateIframe = (iframeSrc, composeView) => {
   const iframe = document.createElement("iframe");
   iframe.setAttribute(
     "style",
@@ -67,10 +69,16 @@ const generateIframe = iframeSrc => {
   iframe.src = chrome.runtime.getURL("iframe.html");
 
   window.addEventListener("message", event => {
-    if (event.source !== iframe) {
+    if (event.source !== iframe.contentWindow) {
       return;
     }
+
     console.log("got message from iframe", event.data);
+    const data = event.data.innerFrameData;
+    if (data.eventName === "InsertTemplate") {
+      composeView.insertTextIntoBodyAtCursor(data.content);
+      modal.close();
+    }
   });
 
   return iframe;

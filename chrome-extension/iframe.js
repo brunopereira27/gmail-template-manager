@@ -1,19 +1,20 @@
 "use strict";
 
 let parentOrigin;
-const iframe = document.createElement("iframe");
+let iframe;
 
-window.addEventListener("message", event => {
-  if (event.source === iframe.contentWindow) {
+window.addEventListener("message", function(event) {
+  if (iframe && event.source === iframe.contentWindow) {
     relayMessageFromInnerToOuterIframe(event);
-  } else if (iframe && event.origin.match(/^https:\/\/\w+\.google\.com$/)) {
+  } else if (event.origin.match(/^https:\/\/\w+\.google\.com$/)) {
     /* Needs to match url of the site your extension puts the iframe in. */
     if (event.data.eventName === "init") {
       parentOrigin = event.origin;
       setupIFrame(event.data.iframeSrc);
     }
   } else {
-    throw new Error("Message from unknown source");
+    /* Message from unknown source */
+    return;
   }
 });
 
@@ -24,7 +25,8 @@ window.addEventListener("message", event => {
  * iframe has been set.
  * @params src: URL for the requested iframe.
  */
-const setupIFrame = src => {
+function setupIFrame(src) {
+  iframe = document.createElement("iframe");
   iframe.src = src;
   iframe.setAttribute(
     "style",
