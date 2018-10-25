@@ -8,13 +8,18 @@
         "https://mail.google.com/*",
         "https://inbox.google.com/*"
       ],
-      "js": ["inboxsdk.js","content.js"],
-      "run_at": "document_end"
+        "js": ["inboxsdk.js","content.js", "iframe.js"],
+      "run_at": "document_end",
+      "all_frames": true
     }
   ],
   "permissions": [
     "https://mail.google.com/",
+    "http://localhost/",
+    "http://localhost:3000/",
     "https://inbox.google.com/"
   ],
+    "web_accessible_resources": ["iframe.html"],
+
   "manifest_version": 2
 }
