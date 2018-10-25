@@ -24,7 +24,6 @@ const Template = props => {
       <span>{props.name}</span>
       <div>
         <ActionButton primary onClick={props.onClick} value="Use" />
-        <ActionButton primary value="Preview" />
       </div>
     </Container>
   );
