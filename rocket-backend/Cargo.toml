@@ -1,0 +1,10 @@
+[package]
+name = "rocket-backend"
+version = "0.1.0"
+authors = ["brunop <bruno@seelk.co>"]
+edition = "2018"
+
+[dependencies]
+rocket = "0.3.17"
+rocket_codegen = "0.3.17"
+diesel = { version = "<= 1.2", features = ["sqlite", "r2d2"] }
