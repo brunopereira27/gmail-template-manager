@@ -55,6 +55,11 @@ class TemplateList extends React.Component {
     });
   }
 
+  insertTemplate(content) {
+    console.log(content);
+    window.parent.postMessage({ eventName: "InsertTemplate", content }, "*");
+  }
+
   onDragEnd = result => {
     // dropped outside the list
     if (!result.destination) {
