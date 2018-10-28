@@ -5,12 +5,14 @@
 extern crate diesel;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate rocket_contrib;
 extern crate dotenv;
 extern crate rocket;
 use rocket_contrib::{Json, Value};
 
 pub mod models;
-use self::models::Template;
+use self::models::{NewTemplate, Template};
 
 #[get("/")]
 fn index() -> &'static str {
@@ -39,9 +41,22 @@ fn get_templates() -> Json<Vec<Template>> {
     Json(templates)
 }
 
+#[post("/", format = "application/json", data = "<new_template>")]
+fn create_template(new_template: Json<NewTemplate>) -> Json<Value> {
+    let result = Template::insert(&new_template);
+    if result {
+        Json(json!({ "status": "ok" }))
+    } else {
+        Json(json!({
+            "status": "error",
+            "reason": "Something went wrong."
+        }))
+    }
+}
+
 fn main() {
     rocket::ignite()
         .mount("/", routes![index])
-        .mount("/templates", routes![get_templates])
+        .mount("/templates", routes![get_templates, create_template])
         .launch();
 }

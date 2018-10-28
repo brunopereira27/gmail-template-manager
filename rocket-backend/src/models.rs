@@ -34,7 +34,7 @@ pub struct Template {
 }
 
 #[table_name = "template_table"]
-#[derive(Insertable, Debug)]
+#[derive(Insertable, Deserialize, Serialize, Debug)]
 pub struct NewTemplate {
     pub name: String,
     pub content: String,
@@ -50,24 +50,12 @@ impl Template {
             .unwrap()
     }
 
-    pub fn insert() {
+    pub fn insert(new_template: &NewTemplate) -> bool {
         let connection = establish_connection();
-        let new_templates = vec![
-            NewTemplate {
-                name: "Introduction".to_string(),
-                content: "Hello I'm...".to_string(),
-                position: 0,
-            },
-            NewTemplate {
-                name: "Thanks".to_string(),
-                content: "Thank you for reaching out...".to_string(),
-                position: 1,
-            },
-        ];
 
         diesel::insert_into(template_table::table)
-            .values(&new_templates)
+            .values(new_template)
             .execute(&connection)
-            .unwrap();
+            .is_ok()
     }
 }
