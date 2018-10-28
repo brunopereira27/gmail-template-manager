@@ -3,29 +3,45 @@
 
 #[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate serde_derive;
 extern crate dotenv;
 extern crate rocket;
+use rocket_contrib::{Json, Value};
+
 pub mod models;
 use self::models::Template;
 
-//#[get("/")]
-//fn index() -> &'static str {
-//    "
-//    USAGE
-//
-//      POST /
-//
-//          accepts raw data in the body of the request and responds with a URL of
-//          a page containing the body's content
-//
-//      GET /<id>
-//
-//          retrieves the content for the paste with id `<id>`
-//    "
-//}
+#[get("/")]
+fn index() -> &'static str {
+    "
+    USAGE
+
+      GET /templates/
+
+          Gives you the list of all templates.
+
+      POST /templates/
+
+          Creates a template. Position is append at the end.
+          params: name - unique name of the template
+          params: content - content of the template
+
+      POST /templates/<id>/position/
+          Reorder the given template to given position.
+          params: position - new position of targeted template
+    "
+}
+
+#[get("/", format = "application/json")]
+fn get_templates() -> Json<Vec<Template>> {
+    let templates = Template::all();
+    Json(templates)
+}
 
 fn main() {
-    //rocket::ignite().mount("/", routes![index]).launch();
-    Template::insert();
-    println!("{:?}", Template::all());
+    rocket::ignite()
+        .mount("/", routes![index])
+        .mount("/templates", routes![get_templates])
+        .launch();
 }
