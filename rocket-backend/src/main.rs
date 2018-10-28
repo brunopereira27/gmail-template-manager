@@ -14,6 +14,11 @@ use rocket_contrib::{Json, Value};
 pub mod models;
 use self::models::{NewTemplate, Template};
 
+#[derive(Deserialize, Debug)]
+pub struct NewPosition {
+    position: i32,
+}
+
 #[get("/")]
 fn index() -> &'static str {
     "
@@ -54,9 +59,25 @@ fn create_template(new_template: Json<NewTemplate>) -> Json<Value> {
     }
 }
 
+#[post("/<id>/position", format = "application/json", data = "<new_position>")]
+fn change_position(id: i32, new_position: Json<NewPosition>) -> Json<Value> {
+    let result = Template::change_position(id, new_position.position);
+    if result {
+        Json(json!({ "status": "ok" }))
+    } else {
+        Json(json!({
+            "status": "error",
+            "reason": "Something went wrong."
+        }))
+    }
+}
+
 fn main() {
     rocket::ignite()
         .mount("/", routes![index])
-        .mount("/templates", routes![get_templates, create_template])
+        .mount(
+            "/templates",
+            routes![get_templates, create_template, change_position],
+        )
         .launch();
 }

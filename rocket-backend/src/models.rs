@@ -15,7 +15,7 @@ mod schema {
 }
 
 use self::schema::template as template_table;
-use self::schema::template::dsl::{template, template_id};
+use self::schema::template::dsl::{position, template};
 
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
@@ -45,7 +45,7 @@ impl Template {
     pub fn all() -> Vec<Template> {
         let connection = establish_connection();
         template
-            .order(template_id.desc())
+            .order(position.asc())
             .load::<Template>(&connection)
             .unwrap()
     }
@@ -55,6 +55,26 @@ impl Template {
 
         diesel::insert_into(template_table::table)
             .values(new_template)
+            .execute(&connection)
+            .is_ok()
+    }
+
+    pub fn change_position(id: i32, new_position: i32) -> bool {
+        let connection = establish_connection();
+
+        // Increment all positions greater than the new one.
+        let target = template.filter(position.gt(new_position));
+        let increment_done = diesel::update(target)
+            .set(position.eq(position + 1))
+            .execute(&connection)
+            .is_ok();
+
+        if !increment_done {
+            return false;
+        }
+        // Set the given template to its new position.
+        diesel::update(template.find(id))
+            .set(position.eq(new_position))
             .execute(&connection)
             .is_ok()
     }
