@@ -1,0 +1,6 @@
+CREATE TABLE template (
+  template_id INTEGER PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  content TEXT NOT NULL,
+  position INTEGER UNIQUE NOT NULL
+)

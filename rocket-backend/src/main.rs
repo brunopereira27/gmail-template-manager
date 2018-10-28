@@ -1,30 +1,31 @@
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
 
+#[macro_use]
+extern crate diesel;
+extern crate dotenv;
 extern crate rocket;
-use diesel::sqlite::SqliteConnection;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+pub mod models;
+use self::models::Template;
 
-// An alias to the type for a pool of Diesel SQLite connections.
-type SqlitePool = Pool<ConnectionManager<SqliteConnection>>;
-
-// The URL to the database, set via the `DATABASE_URL` environment variable.
-static DATABASE_URL: &'static str = env!("DATABASE_URL");
-
-/// Initializes a database pool.
-fn init_pool() -> SqlitePool {
-    let manager = ConnectionManager::<SqliteConnection>::new(DATABASE_URL);
-    Pool::new(manager).expect("db pool")
-}
-
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
+//#[get("/")]
+//fn index() -> &'static str {
+//    "
+//    USAGE
+//
+//      POST /
+//
+//          accepts raw data in the body of the request and responds with a URL of
+//          a page containing the body's content
+//
+//      GET /<id>
+//
+//          retrieves the content for the paste with id `<id>`
+//    "
+//}
 
 fn main() {
-    rocket::ignite()
-        .manage(init_pool())
-        .launch();
-    rocket::ignite().mount("/", routes![index]).launch();
+    //rocket::ignite().mount("/", routes![index]).launch();
+    Template::insert();
+    println!("{:?}", Template::all());
 }
