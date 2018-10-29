@@ -1,8 +1,12 @@
 import React from "react";
 import styled from "react-emotion";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
+import theme from "./../theme";
 import Template from "./Template";
+import { fetchTemplates } from "../actions";
 
 const mock = {
   results: {
@@ -33,26 +37,8 @@ class TemplateList extends React.Component {
   }
 
   componentDidMount() {
-    //fetch("./mocks/templates.json")
-    //  .then(res => res.json())
-    //  .then(
-    //    result => {
-    //      this.setState({
-    //        isLoaded: true,
-    //        remplates: result.items
-    //      });
-    //    },
-    //    error => {
-    //      this.setState({
-    //        isLoaded: true,
-    //        error
-    //      });
-    //    }
-    //  );
-    this.setState({
-      isLoaded: true,
-      templates: mock.results.templates
-    });
+    const { dispatch } = this.props;
+    dispatch(fetchTemplates());
   }
 
   insertTemplate(content) {
@@ -61,7 +47,6 @@ class TemplateList extends React.Component {
   }
 
   onDragEnd = result => {
-    // dropped outside the list
     if (!result.destination) {
       return;
     }
@@ -82,32 +67,35 @@ class TemplateList extends React.Component {
     const Container = styled("div")`
       padding: 10px;
     `;
+    const NoTemplate = styled("span")`
+      padding: 30px;
+      font-weight: 700;
+      color: ${theme.dark};
+    `;
 
-    const { error, isLoaded, templates } = this.state;
+    const { error, items, isFetching, lastUpdated } = this.props;
 
     if (error) {
-      return <div>Error: {error.message}</div>;
-    } else if (!isLoaded) {
+      return <div>Error: {error}</div>;
+    } else if (isFetching) {
       return <div>Loading...</div>;
+    } else if (items.length === 0) {
+      return <NoTemplate>You don't have any template yet.</NoTemplate>;
     } else {
       return (
         <DragDropContext onDragEnd={this.onDragEnd}>
           <Droppable droppableId="droppable">
             {(provided, snapshot) => (
               <Container innerRef={provided.innerRef}>
-                {templates.map((template, index) => (
-                  <Draggable
-                    key={template.name}
-                    draggableId={template.name}
-                    index={index}
-                  >
+                {items.map((item, index) => (
+                  <Draggable key={item.id} draggableId={item.id} index={index}>
                     {(provided, snapshot) => (
                       <Template
                         innerRef={provided.innerRef}
                         provided={provided}
-                        key={template.name}
-                        {...template}
-                        onClick={() => this.insertTemplate(template.content)}
+                        key={item.id}
+                        {...item}
+                        onClick={() => this.insertTemplate(item.content)}
                       />
                     )}
                   </Draggable>
@@ -121,4 +109,25 @@ class TemplateList extends React.Component {
   }
 }
 
-export default TemplateList;
+TemplateList.propTypes = {
+  items: PropTypes.array.isRequired,
+  isFetching: PropTypes.bool.isRequired,
+  lastUpdated: PropTypes.number,
+  error: PropTypes.string.isRequired,
+  dispatch: PropTypes.func.isRequired
+};
+
+function mapStateToProps(state) {
+  const { templates } = state;
+  const { isFetching, lastUpdated, items, error } = templates || {
+    isFetching: true,
+    items: []
+  };
+  return {
+    isFetching,
+    items,
+    lastUpdated,
+    error
+  };
+}
+export default connect(mapStateToProps)(TemplateList);
