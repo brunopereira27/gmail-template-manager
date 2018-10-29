@@ -11,26 +11,9 @@ import TemplateForm from "./TemplateForm";
 import {
   fetchTemplates,
   setTemplateFormVisibility,
-  createTemplateRequest
+  createTemplateRequest,
+  reorderTemplateRequest
 } from "../actions";
-
-const mock = {
-  results: {
-    templates: [
-      { name: "Presentation", content: "HelloWorld, I'm..." },
-      { name: "Got it", content: "HelloWorld; GOTCHA" },
-      { name: "Thanks", content: "HelloWorld,TY :pray:" }
-    ]
-  }
-};
-
-const reorder = (list: any[], startIndex: number, endIndex: number): any[] => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
 
 class TemplateList extends React.Component {
   constructor(props) {
@@ -65,20 +48,22 @@ class TemplateList extends React.Component {
   };
 
   onDragEnd = result => {
+    const { dispatch, items } = this.props;
     if (!result.destination) {
       return;
     }
-
-    const templates = reorder(
-      this.state.templates,
-      result.source.index,
-      result.destination.index
+    const oldPosition = result.source.index;
+    const newPosition = result.destination.index;
+    console.log("old pos", result.source);
+    console.log("new pos", result.destination);
+    console.log(items);
+    dispatch(
+      reorderTemplateRequest(
+        items[oldPosition].template_id,
+        oldPosition,
+        newPosition
+      )
     );
-
-    this.setState({
-      templates
-    });
-    console.log(templates);
   };
 
   render() {
@@ -120,12 +105,16 @@ class TemplateList extends React.Component {
             {(provided, snapshot) => (
               <Container innerRef={provided.innerRef}>
                 {items.map((item, index) => (
-                  <Draggable key={item.id} draggableId={item.id} index={index}>
+                  <Draggable
+                    key={item.template_id}
+                    draggableId={item.template_id}
+                    index={index}
+                  >
                     {(provided, snapshot) => (
                       <Template
                         innerRef={provided.innerRef}
                         provided={provided}
-                        key={item.id}
+                        key={item.template_id}
                         {...item}
                         onClick={() => this.insertTemplate(item.content)}
                       />

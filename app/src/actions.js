@@ -36,10 +36,34 @@ export function requestTemplatesError(error) {
 }
 
 export const REORDER_TEMPLATE = "REORDER_TEMPLATE";
-export function reorderTemplate(templateId) {
+export function reorderTemplate(oldPosition, newPosition) {
   return {
     type: REORDER_TEMPLATE,
-    templateId
+    oldPosition,
+    newPosition
+  };
+}
+
+export function reorderTemplateRequest(templateId, oldPosition, newPosition) {
+  return function(dispatch) {
+    let data = new FormData();
+    let headers = new Headers({
+      "Content-Type": "application/json"
+    });
+
+    fetch(`http://localhost:8000/templates/${templateId}/position`, {
+      method: "POST",
+      body: JSON.stringify({ position: newPosition }),
+      headers
+    })
+      .then(
+        response => response.json(),
+        error => console.log("An error occurred.", error)
+      )
+      .then(json => {
+        dispatch(reorderTemplate(oldPosition, newPosition));
+        dispatch(reorderTemplateOk());
+      });
   };
 }
 
@@ -68,7 +92,6 @@ export function createTemplateRequest(name, content, position) {
   return function(dispatch) {
     dispatch(createTemplate());
 
-    console.log(name);
     let data = new FormData();
     let headers = new Headers({
       "Content-Type": "application/json"

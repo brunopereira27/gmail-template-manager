@@ -3,8 +3,25 @@ import {
   REQUEST_TEMPLATES,
   RECEIVE_TEMPLATES,
   REQUEST_TEMPLATES_ERROR,
+  REORDER_TEMPLATE,
   SET_TEMPLATE_FORM_VISIBILITY
 } from "./actions";
+
+/**
+ * Utils function to reorder a list.
+ * It moves element at startIndex to endIndex.
+ * @params list: The list you want to reorder
+ * @params startIndex: Index of the element to move
+ * @params endIndex: Index of destination
+ * @returns The list ordered.
+ */
+const reorder = (list: any[], startIndex: number, endIndex: number): any[] => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
 
 function templates(
   state = {
@@ -32,6 +49,11 @@ function templates(
         isFetching: false,
         items: [],
         error: action.error
+      });
+    case REORDER_TEMPLATE:
+      console.log(action);
+      return Object.assign({}, state, {
+        items: reorder(state.items, action.oldPosition, action.newPosition)
       });
     default:
       return state;
