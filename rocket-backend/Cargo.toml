@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.3.17"
+rocket_cors = "0.3.0"
 rocket_codegen = "0.3.17"
 rocket_contrib = "0.3.17"
 diesel = { version = "1.3", features = ["sqlite", "r2d2"]    }

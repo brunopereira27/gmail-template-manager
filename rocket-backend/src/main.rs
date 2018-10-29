@@ -1,4 +1,4 @@
-#![feature(plugin)]
+#![feature(plugin, custom_derive)]
 #![plugin(rocket_codegen)]
 
 #[macro_use]
@@ -9,7 +9,10 @@ extern crate serde_derive;
 extern crate rocket_contrib;
 extern crate dotenv;
 extern crate rocket;
+extern crate rocket_cors;
+use rocket::http::Method;
 use rocket_contrib::{Json, Value};
+use rocket_cors::{AllowedHeaders, AllowedOrigins};
 
 pub mod models;
 use self::models::{NewTemplate, Template};
@@ -73,11 +76,23 @@ fn change_position(id: i32, new_position: Json<NewPosition>) -> Json<Value> {
 }
 
 fn main() {
+    let (allowed_origins, failed_origins) = AllowedOrigins::some(&["https://localhost:3000"]);
+
+    // You can also deserialize this
+    let options = rocket_cors::Cors {
+        allowed_origins: allowed_origins,
+        allowed_methods: vec![Method::Get].into_iter().map(From::from).collect(),
+        allowed_headers: AllowedHeaders::some(&["Authorization", "Accept"]),
+        allow_credentials: true,
+        ..Default::default()
+    };
+
     rocket::ignite()
         .mount("/", routes![index])
         .mount(
             "/templates",
             routes![get_templates, create_template, change_position],
         )
+        .attach(options)
         .launch();
 }
