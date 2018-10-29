@@ -61,18 +61,38 @@ impl Template {
 
     pub fn change_position(id: i32, new_position: i32) -> bool {
         let connection = establish_connection();
+        let t = template
+            .find(id)
+            .get_result::<Template>(&connection)
+            .unwrap();
+        let old_position = t.position;
+        let is_asc = new_position > old_position;
 
-        // Increment all positions greater than the new one.
-        let target = template.filter(position.gt(new_position));
-        let increment_done = diesel::update(target)
-            .set(position.eq(position + 1))
-            .execute(&connection)
-            .is_ok();
+        // Set the position to negative in order to avoid conflict during reordering.
+        diesel::update(template.find(id))
+            .set(position.eq(-1))
+            .execute(&connection);
 
-        if !increment_done {
-            return false;
+        // If the template is moving up, templates below it would lose one rank.
+        // If the template is moving down, template above would gain one rank.
+        if is_asc {
+            let target = template
+                .filter(position.le(new_position))
+                .filter(position.gt(old_position));
+            diesel::update(target)
+                .set(position.eq(position - 1))
+                .execute(&connection)
+                .is_ok();
+        } else {
+            let target = template
+                .filter(position.lt(old_position))
+                .filter(position.ge(new_position));
+            diesel::update(target)
+                .set(position.eq(position + 1))
+                .execute(&connection)
+                .is_ok();
         }
-        // Set the given template to its new position.
+
         diesel::update(template.find(id))
             .set(position.eq(new_position))
             .execute(&connection)
