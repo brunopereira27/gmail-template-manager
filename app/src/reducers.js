@@ -2,7 +2,8 @@ import { combineReducers } from "redux";
 import {
   REQUEST_TEMPLATES,
   RECEIVE_TEMPLATES,
-  REQUEST_TEMPLATES_ERROR
+  REQUEST_TEMPLATES_ERROR,
+  SET_TEMPLATE_FORM_VISIBILITY
 } from "./actions";
 
 function templates(
@@ -20,7 +21,6 @@ function templates(
         isFetching: true
       });
     case RECEIVE_TEMPLATES:
-      console.log("hellworld", action);
       return Object.assign({}, state, {
         isFetching: false,
         items: action.templates,
@@ -38,8 +38,25 @@ function templates(
   }
 }
 
+function templateFormVisibility(
+  state = {
+    visibility: false
+  },
+  action
+) {
+  switch (action.type) {
+    case SET_TEMPLATE_FORM_VISIBILITY:
+      return Object.assign({}, state, {
+        visibility: action.visibility
+      });
+    default:
+      return state;
+  }
+}
+
 const rootReducer = combineReducers({
-  templates
+  templates,
+  templateFormVisibility
 });
 
 export default rootReducer;

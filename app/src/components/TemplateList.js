@@ -6,7 +6,13 @@ import { connect } from "react-redux";
 
 import theme from "./../theme";
 import Template from "./Template";
-import { fetchTemplates } from "../actions";
+import AddTemplate from "./AddTemplate";
+import TemplateForm from "./TemplateForm";
+import {
+  fetchTemplates,
+  setTemplateFormVisibility,
+  createTemplateRequest
+} from "../actions";
 
 const mock = {
   results: {
@@ -29,11 +35,6 @@ const reorder = (list: any[], startIndex: number, endIndex: number): any[] => {
 class TemplateList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      error: null,
-      isLoaded: false,
-      templates: []
-    };
   }
 
   componentDidMount() {
@@ -41,10 +42,27 @@ class TemplateList extends React.Component {
     dispatch(fetchTemplates());
   }
 
-  insertTemplate(content) {
-    console.log(content);
+  showTemplateForm = () => {
+    const { dispatch } = this.props;
+    dispatch(setTemplateFormVisibility(true));
+  };
+
+  hideTemplateForm = () => {
+    const { dispatch } = this.props;
+    dispatch(setTemplateFormVisibility(false));
+  };
+
+  createTemplate = (event, name, content) => {
+    event.preventDefault();
+    const { dispatch, items } = this.props;
+    const position =
+      items.length > 0 ? Math.max(...items.map(item => item.position)) + 1 : 0;
+    dispatch(createTemplateRequest(name, content, position));
+  };
+
+  insertTemplate = content => {
     window.parent.postMessage({ eventName: "InsertTemplate", content }, "*");
-  }
+  };
 
   onDragEnd = result => {
     if (!result.destination) {
@@ -73,14 +91,28 @@ class TemplateList extends React.Component {
       color: ${theme.dark};
     `;
 
-    const { error, items, isFetching, lastUpdated } = this.props;
+    const {
+      error,
+      items,
+      isFetching,
+      lastUpdated,
+      templateFormVisibility
+    } = this.props;
 
+    if (templateFormVisibility) {
+      return <TemplateForm onSubmit={this.createTemplate} />;
+    }
     if (error) {
       return <div>Error: {error}</div>;
     } else if (isFetching) {
       return <div>Loading...</div>;
     } else if (items.length === 0) {
-      return <NoTemplate>You don't have any template yet.</NoTemplate>;
+      return (
+        <div>
+          <NoTemplate>You don't have any template yet.</NoTemplate>
+          <AddTemplate onClick={this.showTemplateForm} />
+        </div>
+      );
     } else {
       return (
         <DragDropContext onDragEnd={this.onDragEnd}>
@@ -100,6 +132,8 @@ class TemplateList extends React.Component {
                     )}
                   </Draggable>
                 ))}
+
+                <AddTemplate onClick={this.showTemplateForm} />
               </Container>
             )}
           </Droppable>
@@ -114,20 +148,23 @@ TemplateList.propTypes = {
   isFetching: PropTypes.bool.isRequired,
   lastUpdated: PropTypes.number,
   error: PropTypes.string.isRequired,
-  dispatch: PropTypes.func.isRequired
+  dispatch: PropTypes.func.isRequired,
+  templateFormVisibility: PropTypes.bool.isRequired
 };
 
 function mapStateToProps(state) {
-  const { templates } = state;
+  const { templates, templateFormVisibility } = state;
   const { isFetching, lastUpdated, items, error } = templates || {
     isFetching: true,
     items: []
   };
+  const { visibility } = templateFormVisibility || { visiblity: false };
   return {
     isFetching,
     items,
     lastUpdated,
-    error
+    error,
+    templateFormVisibility: visibility
   };
 }
 export default connect(mapStateToProps)(TemplateList);

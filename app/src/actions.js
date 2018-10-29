@@ -5,7 +5,7 @@ export function requestTemplates() {
   };
 }
 
-export function fetchTemplates(subreddit) {
+export function fetchTemplates() {
   return function(dispatch) {
     dispatch(requestTemplates());
 
@@ -60,8 +60,34 @@ export function reorderTemplateError() {
 export const CREATE_TEMPLATE = "CREATE_TEMPLATE";
 export function createTemplate(name, content, position) {
   return {
-    type: CREATE_TEMPLATE,
-    template: { name, content, position }
+    type: CREATE_TEMPLATE
+  };
+}
+
+export function createTemplateRequest(name, content, position) {
+  return function(dispatch) {
+    dispatch(createTemplate());
+
+    console.log(name);
+    let data = new FormData();
+    let headers = new Headers({
+      "Content-Type": "application/json"
+    });
+
+    fetch(`http://localhost:8000/templates/`, {
+      method: "POST",
+      body: JSON.stringify({ name, content, position }),
+      headers
+    })
+      .then(
+        response => response.json(),
+        error => console.log("An error occurred.", error)
+      )
+      .then(json => {
+        dispatch(setTemplateFormVisibility(false));
+        dispatch(createTemplateOk());
+        dispatch(fetchTemplates());
+      });
   };
 }
 
@@ -76,5 +102,13 @@ export const CREATE_TEMPLATE_ERROR = "CREATE_TEMPLATE_ERROR";
 export function createTemplateError() {
   return {
     type: CREATE_TEMPLATE_ERROR
+  };
+}
+
+export const SET_TEMPLATE_FORM_VISIBILITY = "SET_TEMPLATE_FORM_VISIBILITY";
+export function setTemplateFormVisibility(visibility) {
+  return {
+    type: SET_TEMPLATE_FORM_VISIBILITY,
+    visibility
   };
 }
