@@ -51,7 +51,6 @@ function templates(
         error: action.error
       });
     case REORDER_TEMPLATE:
-      console.log(action);
       return Object.assign({}, state, {
         items: reorder(state.items, action.oldPosition, action.newPosition)
       });
